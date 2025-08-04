@@ -1,0 +1,283 @@
+
+Points:
+
+
+Description Provided:
+
+Year: 2013
+Total Products: 1559
+Total Stores: 10
+Goal: Prediction at product-store level
+
+Train: 8523 datapoints
+Test: 5681 datapoints
+
+Variable description:
+
+Item_Identifier             :   Unique product ID
+Item_Weight                 :   Weight of product
+Item_Fat_Content            :   Whether the product is low fat or not
+Item_Visibility             :   The % of total display area of all products in a store allocated to the particular product
+Item_Type                   :   category to which the product belongs
+Item_MRP                    :   Retail Price (list price) of the product
+Outlet_Identifier           :   Unique store ID
+Outlet_Establishment_Year   :   The year in which store was established
+Outlet_Size                 :   The size of the store in terms of ground area covered
+Outlet_Location_Type        :   The type of city in which the store is located
+Outlet_Type                 :   Whether the outlet is just a grocery store or some sort of supermarket
+Item_Outlet_Sales           :   Sales of the product in the particular store. This is the outcome variable to be predicted.
+
+
+
+Understandings:
+
+- Train dataset has 8523 datapoints
+
+Index                       Type    Count   Nunique
+Item_Identifier           : object	8523	1559
+Item_Weight               : float64	7060	415
+Item_Fat_Content          : object	8523	5
+Item_Visibility           : float64	8523	7880
+Item_Type                 : object	8523	16
+Item_MRP                  : float64	8523	5938
+Outlet_Identifier         : object	8523	10
+Outlet_Establishment_Year : int64	8523	9
+Outlet_Size               : object	6113	3
+Outlet_Location_Type      : object	8523	3
+Outlet_Type               : object	8523	4
+Item_Outlet_Sales         : float64	8523	3493
+
+
+- There are total 1.5k product IDs.
+- There are total 10 stores.
+- Data is unique at product-store level (8,523 datapoints at product-store).
+
+- Item_Weight:
+    This is a numeric variable, and has 1,463 (17%) missing datapoints.
+    There are all types of item types in missing data
+    Weight is missing from 2 outlets: OUT027, OUT019
+    Sales Data:
+        OUT027   3453926.05         OUT046   2118395.17
+        OUT035   2268122.94         OUT045   2036725.48
+        OUT049   2183969.81         OUT018   1851822.83
+        OUT017   2167465.29         OUT010    188340.17
+        OUT013   2142663.58         OUT019    179694.09
+    Outlets with highest and lowest sales have data with missing weights.
+    No specific Item_Type is missing. In missing data, all types of Item_Types are present.
+    No great difference in Item_MRP or Item_Visibility as well for missing and overall data
+                            
+        Item_Type              Missing_Item_Weight_MRP      Overall_Item_MRP
+        Household                               150.77            149.42
+        Starchy Foods                           148.89            147.84
+        Hard Drinks                             131.39            137.08
+        Soft Drinks                             129.85            131.49
+        Health and Hygiene                      129.36            130.82
+        Seafood                                 129.25            141.84
+        ...                                     ...               ...
+        Baking Goods                            127.74            126.38
+        Others                                  119.60            132.85
+    
+    Filling the average Item Weight of each Item_Identifier (Although std_dev = 0, still considering all points).
+
+
+- Item_Fat_Content categories: ['Low Fat', 'Regular', 'low fat', 'LF', 'reg']
+    Seems like LF and low fat are similar. reg and Regular are similar.
+    Frequency Distribution:
+        Low Fat    5,089
+        Regular    2,889
+        LF           316
+        reg          117
+        low fat      112
+    Seems like most of the data is either Low Fat or Regular.
+
+
+- Item_Visibility:
+    Numerical data with no missing datapoints.
+    The data is right skewed, ranging fron 0-around 0.3, averaging at around 0.05.
+    This means, for a praticular product, average 5% display area is allocated.
+    This variable should positive correlation with sales, (higher the visibility, higher the sales).
+    Also, it says almost no product has > 30% display area (which seems logical).
+    Higher visibility can be due to less unique products availability, or truly high display area provided.
+    ['OUT019', 'OUT010'] have products with > 20% visibility
+    Total Sales and number of Total Products in these 2 outlets are also very less (than other stores).
+
+- Item_Type:
+        Fruits and Vegetables  1232       Soft Drinks     445
+        Snack Foods            1200       Meat            425
+        Household              910        Breads          251
+        Frozen Foods           856        Hard Drinks     214
+        Dairy                  682        Others          169
+        Canned                 649        Starchy Foods   148
+        Baking Goods           648        Breakfast       110
+        Health and Hygiene     520        Seafood          64
+        
+        Fruits & veggies are most frequent.
+        Fruits & veggies sell also the most.
+        There are no missing data.
+
+
+- Item_MRP
+    This is a numeric column with no missing data.
+    There are some MRPs, for which are very infrequent. Like products with MRP around 75, 140, 200 are very infrequent
+    Same is visible in the scatterplot of Item_MRP and Item_Outlet_Sales, i.e. no datapoints with those MRPs.
+    Also, with increasing MRP, the Item Sales (In that particular Outlet) didn't decrease, but it increased.
+    Need to understand what is Sales, is it number of items sold, or the total value of the products sold?
+
+
+- Outlet_Identifier
+    Total 10 outlets, with no missing data.
+    2 outlets have missing item weights i.e. the largest and the smallest outlet (by sales).
+    Need to predict the sales at product-outlet level. This variable can be removed since
+    its details i.e. age, size, location type, type are already present.
+
+- Outlet_Establishment_Year
+    This is a numeric column with no missing data. This column can be converted to age to avoid any bias.
+
+- Outlet_Size
+    This is a categorical column with 2410 missing datapoints.
+    Outlet 10, 45 and 17 have missing outlet size.
+    There is no data discrepancy like one outlet has multiple outlet sizes.
+    There is no boundary that can be drawn in total Item_Outlet_Sales and Outlet_Identifier.
+
+        Outlet_Identifier   Outlet_Size Total_Sales Average_Sales
+        OUT010		                    188340      339
+        OUT019	            Small	    179694      340
+        OUT018	            Medium	    1851822     1995
+        OUT045	        	            2036725     2192
+        OUT046	            Small	    2118395     2277
+        OUT013	            High	    2142663     2298
+        OUT017	        	            2167465     2340
+        OUT049	            Medium	    2183969     2348
+        OUT035	            Small	    2268122     2438
+        OUT027	            Medium	    3453926     3694
+    
+    There is no distinction between Item_Outlet_Sales/Item_MRP and Outlier_Identifier also.
+    Need to check how outlet size is getting calculated.
+
+
+
+
+- Outlet_Location_Type
+    There are total 3 location types: ['Tier 1', 'Tier 3', 'Tier 2']
+    There is no missing data.
+        Outlet_Location_Type
+        Tier 3    3350
+        Tier 2    2785
+        Tier 1    2388
+
+    For non missing outlet size:
+                               High  Medium  Small
+        Tier 1                   0     930   1458
+        Tier 2                   0       0    930
+        Tier 3                 932    1863      0
+
+
+- Outlet_Type
+    This is a categorical variable with no missing data.
+    The values are:
+        Supermarket Type1    5577
+        Grocery Store        1083
+        Supermarket Type3     935
+        Supermarket Type2     928
+    Most of the outlets are supermarket Type1, rest are around 1k each.
+                            High  Medium  Small
+        Grocery Store         0       0    528
+        Supermarket Type1   932     930   1860
+        Supermarket Type2     0     928      0
+        Supermarket Type3     0     935      0
+
+    So all of the Grocery Stores are small, all of the typ2, 3 Supermarkets are medium
+    Supermarket type1 are high, medium, small.
+    Missing Outlet_Size are:
+        Supermarket Type1    1855
+        Grocery Store         555
+    Grocery stores can be termed as small, but type1 SMs can be anything.
+
+    Thus, we can say the following:
+        Tier 2 outlets are always small
+        Supermarket Type2 are always medium
+        Supermarket Type3 are always medium
+        Grocery Store are always high
+        Open cases are: Tier 1 and Tier3 Supermarket Type1
+
+    Following code says: missing Outlet_Location_Type are of the type Tier 2 - Supermarket Type1; Tier 3 - Grocery Store.
+    Tier 2 is always small Outlet_Size, thus Tier 2 - Supermarket Type1 is small.
+    But Grocery Store is always small, but Tier 3 is always High or Medium. There is a conflict there.
+    
+
+    >>> missing_outlet_size[['Outlet_Location_Type', 'Outlet_Type']].value_counts()
+    Outlet_Location_Type  Outlet_Type      
+    Tier 2                Supermarket Type1    1855
+    Tier 3                Grocery Store         555
+    Name: count, dtype: int64
+    >>> pd.crosstab(df['Outlet_Size'], df['Outlet_Location_Type'])
+    Outlet_Location_Type  Tier 1  Tier 2  Tier 3
+    Outlet_Size                                 
+    High                       0       0     932
+    Medium                   930       0    1863
+    Small                   1458     930       0
+    >>> pd.crosstab(outlet_size_data['Outlet_Size'], outlet_size_data['Outlet_Type'])
+    Outlet_Type  Grocery Store  Supermarket Type1  Supermarket Type2  Supermarket Type3
+    Outlet_Size                                                                        
+    High                     0                932                  0                  0
+    Medium                   0                930                928                935
+    Small                  528               1860                  0                  0
+
+    Thus, 555 datapoints of Tier 3 - Grocery are unknown.
+    Approaches:
+        Since all the Outlet_Sizes are already described by other variables, we can ignore that.
+        If the missing data is something different by chance, we can assign a new Outlet_Size to them.
+
+
+- Item_Outlet_Sales
+
+
+- Approach:
+
+    - Fill Missing data:
+        - Item_Weight: Fill the average Item Weight of each Item_Identifier.
+        For the rest of the cases (4 cases will be remaining), use average Item_Outlet_Sales of Item_Type
+        - Outlet_Size:
+            - Tier 2 - Supermarket Type1: Small
+            - Tier 3 - Grocery Store: Conflict
+            - Approach 1: Ignore Outlet Size, because most of the data is described by other variables.
+            - Approach 2: Put some different value in the missing undefined rows.
+
+    - Club the data:
+        - Item_Fat_Content: ['Low Fat', 'Regular', 'low fat', 'LF', 'reg'] -> ['Low Fat', 'Regular']
+        - Item_Type: Not clubbing (since all the categories have some data in them).
+                    If predictions are not well, then will try clubbing some categories.
+        - Outlet_Size: Dropping or imputing with new value
+        - Outlet_Location_Type: Not clubing (Tier 1, Tier 2, Tier 3)
+        - Outlet_Type: Not clubbing (SM1, SM2, SM3, Grocery Store)
+     
+     - Calculate age from Outlet_Establishment_Year
+     - Standardize the data
+     - Remove Item_Identifer and Outlet_Identifier
+     - Create Dummy variables
+     - Split training and validation (90, 10)
+     - Create LR, RF, XGB
+     - Check the validation score, and how different outputs are different.
+     - Fine tune if required.
+     - Predict and submit.
+        
+        
+
+Results:
+    - Prediction results:
+                        Model     RMSE    R2     MAE   MAPE
+        0    Linear Regression  1063.57  0.60  764.24  67.57
+        1                Ridge  1063.74  0.60  764.45  67.64
+        2                Lasso  1064.63  0.59  765.53  67.92
+        3  Random Forest Tuned  1038.14  0.61  724.28  53.71
+        4        XGBoost Tuned  1029.03  0.62  722.35  55.91
+    
+    - Log Transformed Sales data results:
+                        Model     RMSE    R2     MAE   MAPE
+        0    Linear Regression  1105.70  0.56  766.34  50.29
+        1                Ridge  1105.68  0.56  766.33  50.29
+        2                Lasso  1122.70  0.55  774.22  51.48
+        3  Random Forest Tuned  1065.76  0.59  732.81  48.10
+        4        XGBoost Tuned  1059.51  0.60  730.64  47.95
+
+
